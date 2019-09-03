@@ -33,26 +33,29 @@ server.post("/api/posts", (req, res) => {
 });
 
 server.post("/api/posts/:id/comments", (req, res) => {
-  const postId = req.params.id;
   const comment = req.body;
 
-  if (!postId) {
-    res
-      .status(404)
-      .json({ message: "The post with the specified ID does not exist." });
-  }
   if (!comment.text) {
     res
       .status(400)
       .json({ errorMessage: "Please provide text for the comment." });
   }
+
   Posts.insertComment(comment)
-    .then(comment => res.status(201).json(comment))
-    .catch(error =>
-      res.status(500).json({
-        error: "There was an error while saving the comment to the database"
-      })
-    );
+    .then(id => {
+      Posts.findCommentById(id.id)
+        .then(comment => res.status(201).json(comment))
+        .catch(error =>
+          res.status(500).json({
+            error: "There was an error while saving the comment to the database"
+          })
+        );
+    })
+    .catch(error => {
+      res
+        .status(404)
+        .json({ message: "The post with the specified ID does not exist." });
+    });
 });
 
 server.get("/api/posts", (req, res) => {
@@ -70,41 +73,48 @@ server.get("/api/posts", (req, res) => {
 server.get("/api/posts/:id", (req, res) => {
   const postId = req.params.id;
 
-  if (!postId) {
-    res
-      .status(404)
-      .json({ message: "The post with the specified ID does not exist." });
-  } else {
-    Posts.findById(postId)
-      .then(post => {
-        res.status(200).json(post);
-      })
-      .catch(error => {
-        res
-          .status(500)
-          .json({ error: "The post information could not be retrieved." });
+  Posts.findById(postId)
+    .then(post => {
+      if (post.length) return res.status(200).json(post);
+      else
+        return res.status(404).json({
+          message: "The post with the specified ID does not exist."
+        });
+    })
+    .catch(err => {
+      return res.status(500).json({
+        message: {
+          error: "The post information could not be retrieved."
+        }
       });
-  }
+    });
 });
 
 server.get("/api/posts/:id/comments", (req, res) => {
   const postId = req.params.id;
 
-  if (!postId) {
-    res
-      .status(404)
-      .json({ message: "The post with the specified ID does not exist." });
-  } else {
-    Posts.findPostComments(postId)
-      .then(comments => {
-        res.status(200).json(comments);
-      })
-      .catch(error => {
-        res
-          .status(500)
-          .json({ error: "The comments information could not be retrieved." });
+  Posts.findById(postId)
+    .then(post => {
+      if (post.length) {
+        Posts.findPostComments(postId)
+          .then(comments => {
+            return res.status(200).json(comments);
+          })
+          .catch(err => {
+            return res.status(500).json({
+              error: "The comments information could not be retrieved."
+            });
+          });
+      } else
+        return res.status(404).json({
+          error: "The post with the specified ID does not exist."
+        });
+    })
+    .catch(err => {
+      return res.status(500).json({
+        message: "There was an error while retrieving comments."
       });
-  }
+    });
 });
 
 module.exports = server;
