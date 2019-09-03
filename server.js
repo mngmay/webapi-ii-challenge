@@ -67,7 +67,7 @@ server.get("/api/posts", (req, res) => {
     });
 });
 
-server.get("/api/posts/:id", (req, res) => {
+server.get("/api/posts/:id/comments", (req, res) => {
   const postId = req.params.id;
 
   if (!postId) {
