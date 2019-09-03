@@ -44,4 +44,25 @@ server.get("/api/posts", (req, res) => {
     });
 });
 
+server.get("/api/posts/:id", (req, res) => {
+  const post = req.body;
+  const postId = req.params.id;
+
+  if (!postId) {
+    res
+      .status(404)
+      .json({ message: "The post with the specified ID does not exist." });
+  } else {
+    Posts.findPostComments(postId)
+      .then(posts => {
+        res.status(200).json(posts);
+      })
+      .catch(error => {
+        res
+          .status(500)
+          .json({ error: "The post information could not be retrieved." });
+      });
+  }
+});
+
 module.exports = server;
