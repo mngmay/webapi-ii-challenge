@@ -32,6 +32,29 @@ server.post("/api/posts", (req, res) => {
   }
 });
 
+server.post("/api/posts/:id/comments", (req, res) => {
+  const postId = req.params.id;
+  const comment = req.body;
+
+  if (!postId) {
+    res
+      .status(404)
+      .json({ message: "The post with the specified ID does not exist." });
+  }
+  if (!comment.text) {
+    res
+      .status(400)
+      .json({ errorMessage: "Please provide text for the comment." });
+  }
+  Posts.insertComment(comment)
+    .then(comment => res.status(201).json(comment))
+    .catch(error =>
+      res.status(500).json({
+        error: "There was an error while saving the comment to the database"
+      })
+    );
+});
+
 server.get("/api/posts", (req, res) => {
   Posts.find()
     .then(posts => {
@@ -45,7 +68,6 @@ server.get("/api/posts", (req, res) => {
 });
 
 server.get("/api/posts/:id", (req, res) => {
-  const post = req.body;
   const postId = req.params.id;
 
   if (!postId) {
