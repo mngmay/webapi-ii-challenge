@@ -98,7 +98,13 @@ server.get("/api/posts/:id/comments", (req, res) => {
       if (post.length) {
         Posts.findPostComments(postId)
           .then(comments => {
-            return res.status(200).json(comments);
+            if (comments.length > 0) {
+              return res.status(200).json(comments);
+            } else {
+              return res
+                .status(404)
+                .json({ error: "This post has no comments" });
+            }
           })
           .catch(err => {
             return res.status(500).json({
@@ -157,7 +163,7 @@ server.put("/api/posts/:id", (req, res) => {
           .catch(error => {
             res
               .status(500)
-              .json({ message: "The post informaiton could not be modified" });
+              .json({ message: "The post information could not be modified" });
           });
       } else {
         res
@@ -168,7 +174,7 @@ server.put("/api/posts/:id", (req, res) => {
     .catch(error => {
       res
         .status(500)
-        .json({ message: "The post informaiton could not be modified" });
+        .json({ message: "The post information could not be modified" });
     });
 });
 
